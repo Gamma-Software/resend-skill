@@ -1,0 +1,21 @@
+{
+  "description": "Trigger evals for the resend skill — prompts that SHOULD load it and prompts that should NOT.",
+  "should_trigger": [
+    "set up Resend for myproject.com",
+    "send a test email from contact@myproject.com",
+    "add email sending to my Cloudflare Worker with Resend",
+    "add and verify a domain in Resend",
+    "set up contact@ on my domain so it forwards to my Gmail",
+    "wire up Gmail send mail as for my custom domain",
+    "I want transactional email for my SaaS",
+    "here is my resend api key re_abc123 what can you do",
+    "configure DKIM and SPF for sending email from my domain"
+  ],
+  "should_not_trigger": [
+    "send a Slack message to the team",
+    "set up Cloudflare DNS for my domain",
+    "deploy my Next.js app to Vercel",
+    "read the latest emails in my Gmail inbox",
+    "write a marketing email newsletter copy"
+  ]
+}

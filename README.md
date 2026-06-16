@@ -1,63 +1,83 @@
-# SKILL_NAME
+# Resend
 
-> **This is a template.** Click **Use this template** on GitHub (or
-> `gh repo create <you>/<skill>-skill --template Gamma-Software/skill-template`),
-> then run `./init.sh <skill-slug>` and fill in `SKILL.md`. Delete this banner
-> when done.
-
-A one-line pitch of the skill, as a skill for Claude Code (and any agent that
-supports skills — OpenCode, Codex, Cursor).
+A **transactional-email operator** as a skill for Claude Code (and any agent that
+supports skills — OpenCode, Codex, Cursor). Send mail, stand up a verified
+**sending domain** with correct DKIM/SPF, and — because Resend is outbound-only —
+wire up real inbound (`contact@yourdomain` → your inbox) via Cloudflare Email
+Routing and Gmail "Send mail as".
 
 ```
-Step1 → Step2 → [human gate] → Step3 → Verify → Clean up
+[have key] → send / batch
+[new domain] → add → DNS (DKIM/SPF/return-path) → verify → send
+[real inbox] → + Cloudflare Email Routing (receive) → + Gmail send-as (reply-as)
 ```
 
 ## How it works
 
-1. First thing it does.
-2. Second thing.
-3. Validates with measurements, then reports.
+1. **Sends** transactional mail via the Resend API or SMTP (`scripts/resend.sh`
+   wraps send/batch/status), once a domain is verified.
+2. **Sets up a sending domain** — adds it, lays down DKIM + SPF + return-path DNS
+   (Cloudflare "Auto configure" or manual/API), verifies. The return-path lives on
+   a `send.` subdomain so it never collides with an apex SPF.
+3. **Closes the loop** (optional) — pairs with **Cloudflare Email Routing** so
+   inbound `contact@` forwards to a real inbox, and sets up Gmail "Send mail as"
+   so you can reply as the address. One human gate: clicking a verify link.
+4. **Validates** with a roundtrip test (send out + send to the address) and
+   delivery-status checks, then reports.
 
 ## Install
 
 ```bash
-npx add-skill Gamma-Software/SKILL_REPO           # all detected agents
-npx add-skill Gamma-Software/SKILL_REPO --global  # globally
+npx add-skill Gamma-Software/resend-skill           # all detected agents
+npx add-skill Gamma-Software/resend-skill --global  # globally
 ```
 
 Or manually:
 
 ```bash
-git clone https://github.com/Gamma-Software/SKILL_REPO.git
-ln -s "$PWD/SKILL_REPO" ~/.claude/skills/SKILL_SLUG   # or copy it
+git clone https://github.com/Gamma-Software/resend-skill.git
+ln -s "$PWD/resend-skill" ~/.claude/skills/resend   # or copy it
 ```
 
 ## Usage
 
-Describe the task — it auto-triggers on the phrases in `SKILL.md`'s
-`description` — or run `/SKILL_SLUG`.
+Just ask — it auto-triggers ("set up Resend", "send a test email", "add email
+sending to my app", "verify a domain in Resend", "set up contact@ on my domain",
+"wire Gmail send-as") or when you paste a `re_...` key — or run `/resend`.
+
+Set the key in the environment first:
+
+```bash
+export RESEND_API_KEY=re_xxx
+```
 
 | Agent | Global path | Project path |
 |-------|-------------|--------------|
-| Claude Code | `~/.claude/skills/SKILL_SLUG/` | `.claude/skills/SKILL_SLUG/` |
-| OpenCode | `~/.config/opencode/skill/SKILL_SLUG/` | `.opencode/skill/SKILL_SLUG/` |
-| Codex | `~/.codex/skills/SKILL_SLUG/` | `.codex/skills/SKILL_SLUG/` |
-| Cursor | `~/.cursor/skills/SKILL_SLUG/` | `.cursor/skills/SKILL_SLUG/` |
+| Claude Code | `~/.claude/skills/resend/` | `.claude/skills/resend/` |
+| OpenCode | `~/.config/opencode/skill/resend/` | `.opencode/skill/resend/` |
+| Codex | `~/.codex/skills/resend/` | `.codex/skills/resend/` |
+| Cursor | `~/.cursor/skills/resend/` | `.cursor/skills/resend/` |
 
 ## Structure
 
 ```
-SKILL_REPO/
-├── SKILL.md              # the skill itself (frontmatter + procedure)
-├── scripts/              # executable helpers the skill calls (optional)
-├── assets/              # templates/files the skill copies into a project (optional)
-├── references/          # long material the agent reads on demand (optional)
-└── evals/               # trigger / behavior evals (optional)
+resend-skill/
+├── SKILL.md                      # the skill (frontmatter + procedure)
+├── scripts/
+│   └── resend.sh                 # Resend API wrapper (send, domains, verify, status)
+├── references/
+│   ├── sending.md                # batch, HTML, attachments, SMTP, idempotency, webhooks
+│   ├── domain-setup.md           # DNS records explained, regions, DMARC alignment
+│   └── receiving.md              # Cloudflare Email Routing pairing + Gmail send-as
+└── evals/
+    └── evals.json                # trigger evals
 ```
 
 ## Requirements
 
-- List runtime deps here (e.g. Node 18+, bash 3.2+, git).
+- A Resend account + API key (`re_...`) in `$RESEND_API_KEY`.
+- `curl` + `python3` (the script wrapper). Stock macOS bash 3.2 OK.
+- Optional inbound: a domain on Cloudflare (for Email Routing).
 
 ## License
 
